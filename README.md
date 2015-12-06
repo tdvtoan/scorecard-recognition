@@ -12,6 +12,16 @@ run container
 docker run --name ledis -d -p 80:5000 ledis:1.0
 ```
 
+run git-sync
+```bash
+docker run -d -e "GIT_SYNC_REPO=https://github.com/khanhicetea/flask-skeleton.git" -e "GIT_SYNC_DEST=/git" -e "GIT_SYNC_BRANCH=master" -e "GIT_SYNC_DEST=/git" -v /var/opt/ledis:/git --name=git-sync git-sync
+```
+
+run auto-reloading container
+```
+docker run --name ledis -d -p 80:5000 -v /var/opt/ledis/project/:/usr/src/app/project ledis:1.0
+```
+
 ### Set Environment Variables
 
 Update *config.py*, and then run:
