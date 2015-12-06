@@ -38,15 +38,13 @@ def home():
             if excute == 'set':
                 key = params[0]
                 value = params[1]
-                print key, value
-                ledis.strings_set(key, value)
+                ledis.string_set(key, value)
+                return jsonify(OK_RESPONSE)
 
             elif excute == 'get':
                 key = params[0]
-                print key
-
                 value = ledis.string_get(key)
-                print value
+                print 'value' + value
                 return jsonify({'response':value})
             elif excute == 'expire':
                 key = params[0]
@@ -99,9 +97,8 @@ def home():
             elif excute == 'restore':
                 pass
         except:
-            pass
-        finally:
             return jsonify(response)
+
     elif request.method == 'GET':
         return jsonify(OK_RESPONSE)
 
