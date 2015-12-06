@@ -85,7 +85,8 @@ def home():
                 ledis.set_sinter(keys)
                 result = 'OK'
             elif excute == 'save':
-                pass
+                ledis.save()
+                result = 'OK'
             elif excute == 'restore':
                 pass
         except:
