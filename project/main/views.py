@@ -88,7 +88,8 @@ def home():
                 ledis.save()
                 result = 'OK'
             elif excute == 'restore':
-                pass
+                ledis.restore()
+                result = 'OK'
         except:
             return response_msg('EINV')
     if result is None:
