@@ -1,17 +1,16 @@
-# Flask Skeleton
-
-Flask starter project...
-
-[![Build Status](https://travis-ci.org/realpython/flask-skeleton.svg?branch=master)](https://travis-ci.org/realpython/flask-skeleton)
-
-[![Coverage Status](https://coveralls.io/repos/realpython/flask-skeleton/badge.svg?branch=master&service=github)](https://coveralls.io/github/realpython/flask-skeleton?branch=master)
+# Ledis - coding challenge
 
 ## Quick Start
 
-### Basics
+build image:
+```bash
+docker build -t ledis:1.0 .
+```
 
-1. Activate a virtualenv
-1. Install the requirements
+run container
+```bash
+docker run --name ledis -d -p 80:5000 ledis:1.0
+```
 
 ### Set Environment Variables
 
