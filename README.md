@@ -26,7 +26,7 @@ docker build -t ledis:1.0 .
 
 run container
 ```bash
-docker run --name ledis -d -p 80:5000 ledis:1.0
+docker run --name ledis -d -e "PATH=/var/data/ledis" -v /var/data/ledis:/var/data/ledis -p 80:5000 ledis:1.0
 ```
 
 run git-sync
@@ -36,7 +36,7 @@ docker run -d -e "GIT_SYNC_REPO=https://github.com/khanhicetea/flask-skeleton.gi
 
 run auto-reloading container
 ```
-docker run --name ledis -d -p 80:5000 -v /var/opt/ledis/project/:/usr/src/app/project ledis:1.0
+docker run --name ledis -d -p 80:5000 -e "PATH=/var/data/ledis" -v /var/data/ledis:/var/data/ledis -v /var/opt/ledis/project/:/usr/src/app/project ledis:1.0
 ```
 
 ## Sample Tests
