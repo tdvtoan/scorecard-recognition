@@ -1,5 +1,7 @@
 from blist import sortedset
-
+import time
+import simplejson
+import os
 
 class LedisDb(object):
 
@@ -29,6 +31,7 @@ class LedisDb(object):
             del self._data[key]
 
     def flush_db(self):
+        print 'Flushed'
         self._data.clear()
 
     def string_set(self, key, value):
@@ -98,3 +101,38 @@ class LedisDb(object):
             if self.is_exists(key) and self.is_list(key):
                 result.intersection(self._data[key])
         return [item for item in result]
+
+    def expire_key(self, key, seconds):
+        self._expired[key] = int(time.time()) + int(abs(seconds))
+
+    def clear_expired(self):
+        now = int(time.time())
+        for key in self._expired:
+            if self._expired[key] < now and self.is_exists(key):
+                del self._data[key]
+
+    def restore(self):
+        folder = os.environ.get('LEDIS_PATH', None)
+        dated_files = [(os.path.getmtime(fn), os.path.basename(fn))
+               for fn in os.listdir(folder) if fn.lower().endswith('.json')]
+        dated_files.sort()
+        dated_files.reverse()
+        newest = dated_files[0][1] if len(dated_files) > 0 else None
+        if newest:
+            pass
+
+    def save(self):
+        now = int(time.time())
+        data_types = {}
+        for key in self._data:
+            type = 'string'
+            if self.is_list(key):
+                type = 'list'
+            elif self.is_set(key):
+                type = 'set'
+            data_types[key] = type
+        structure_file_name = os.environ.get('LEDIS_PATH', None) + '/' + str(now) + '.dson'
+        file_name = os.environ.get('LEDIS_PATH', None) + '/' + str(now) + '.json'
+        simplejson.dump(self._data, open(file_name, 'wb'))
+        simplejson.dump(data_types, open(structure_file_name, 'wb'))
+        return True
