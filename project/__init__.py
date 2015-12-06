@@ -18,6 +18,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 ################
 #### config ####
 ################
+from project.ledis import LedisDb
 
 app = Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
@@ -33,7 +34,7 @@ bcrypt = Bcrypt(app)
 toolbar = DebugToolbarExtension(app)
 bootstrap = Bootstrap(app)
 db = SQLAlchemy(app)
-
+ledis = LedisDb()
 
 ###################
 ### blueprints ####

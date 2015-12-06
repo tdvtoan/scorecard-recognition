@@ -11,6 +11,7 @@ import json
 ################
 #### config ####
 ################
+from project import ledis
 
 main_blueprint = Blueprint('main', __name__,)
 
@@ -37,11 +38,16 @@ def home():
             if excute == 'set':
                 key = params[0]
                 value = params[1]
-
+                print key, value
+                ledis.strings_set(key, value)
 
             elif excute == 'get':
-                value = params[0]
+                key = params[0]
+                print key
 
+                value = ledis.string_get(key)
+                print value
+                return jsonify({'response':value})
             elif excute == 'expire':
                 key = params[0]
                 seconds = params[1]
