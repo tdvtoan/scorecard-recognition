@@ -47,54 +47,44 @@ def home():
                 val = ledis.string_get(key)
                 return jsonify({'response': val})
             elif excute == 'expire':
-                key = params[0]
-                seconds = params[1]
-
-            elif excute == 'ttl':
-                key = params[0]
-
-            elif excute == 'del':
-                key = params[0]
-
-            elif excute == 'flushdb':
                 pass
-
+            elif excute == 'ttl':
+                pass
+            elif excute == 'del':
+                ledis.del_key(key)
+            elif excute == 'flushdb':
+                ledis.flush_db()
             elif excute == 'llen':
-                key = params[0]
-
+                length = ledis.list_length(key)
+                return jsonify({'response': length})
             elif excute == 'rpush':
-                key = params[0]
-                value = params[1]
-
+                ledis.list_rpush(key, values)
             elif excute == 'lpop':
-                key = params[0]
-
+                result = ledis.list_lpop(key)
+                return jsonify({'response': result})
             elif excute == 'rpop':
-                key = params[0]
-
+                result = ledis.list_rpop(key)
+                return jsonify({'response': result})
             elif excute == 'lrange':
-                key = params[0]
-                start = params[1]
-                stop = params[2]
-
+                result = ledis.list_lrange(key, values[0], values[1])
+                return jsonify({'response': result})
             elif excute == 'sadd':
-                key = params[0]
-                value = params[1]
-
+                ledis.set_add(key, values)
             elif excute == 'scard':
-                key = params[0]
-
+                result = ledis.set_scard(key)
+                return jsonify({'response': result})
             elif excute == 'smembers':
-                key = params[0]
-                value = params[1]
-
+                result = ledis.set_smembers(key)
+                return jsonify({'response': result})
             elif excute == 'srem':
-                key = params[0]
-
-
+                ledis.set_srem(key, values)
+            elif excute == 'sinter':
+                keys = [key]
+                for val in values:
+                    keys.append(val)
+                ledis.set_sinter(keys)
             elif excute == 'save':
                 pass
-
             elif excute == 'restore':
                 pass
         except:
