@@ -51,6 +51,7 @@ class LedisDb(object):
             self._data[key] = []
         for val in values:
             self._data[key].append(val)
+        return len(self._data[key])
 
     def list_lpop(self, key):
         if self.is_exists(key) and self.is_list(key) and len(self._data[key]) > 0:
@@ -68,7 +69,8 @@ class LedisDb(object):
 
     def list_lrange(self, key, start, stop):
         if self.is_exists(key) and self.is_list(key):
-            return self._data[key][start, stop]
+            l = self._data[key]
+            return l[int(start):int(stop)]
 
     def set_add(self, key, values):
         if not self.is_exists(key):

@@ -37,59 +37,62 @@ def home():
                 return jsonify(ECOM)
             commands = data['command'].split()
             excute = commands[0].lower()
+            if excute not in VALID_CMD:
+                return response_msg('ECOM')
             params = commands[1:]
-            key = params[0]
+            key = params[0] if len(params) > 0 else None
             values = params[1:] if len(params) > 1 else []
             value = params[1] if len(params) > 1 else None
             if excute == 'set':
                 ledis.string_set(key, value)
+                result = 'OK'
             elif excute == 'get':
-                val = ledis.string_get(key)
-                return jsonify({'response': val})
+                result = ledis.string_get(key)
             elif excute == 'expire':
                 pass
             elif excute == 'ttl':
                 pass
             elif excute == 'del':
                 ledis.del_key(key)
+                result = 'OK'
             elif excute == 'flushdb':
                 ledis.flush_db()
+                result = 'OK'
             elif excute == 'llen':
-                length = ledis.list_length(key)
-                return jsonify({'response': length})
+                result = ledis.list_length(key)
             elif excute == 'rpush':
-                ledis.list_rpush(key, values)
+                result = ledis.list_rpush(key, values)
             elif excute == 'lpop':
                 result = ledis.list_lpop(key)
-                return jsonify({'response': result})
             elif excute == 'rpop':
                 result = ledis.list_rpop(key)
-                return jsonify({'response': result})
             elif excute == 'lrange':
                 result = ledis.list_lrange(key, values[0], values[1])
-                return jsonify({'response': result})
             elif excute == 'sadd':
                 ledis.set_add(key, values)
+                result = 'OK'
             elif excute == 'scard':
                 result = ledis.set_scard(key)
-                return jsonify({'response': result})
             elif excute == 'smembers':
                 result = ledis.set_smembers(key)
-                return jsonify({'response': result})
             elif excute == 'srem':
                 ledis.set_srem(key, values)
+                result = 'OK'
             elif excute == 'sinter':
                 keys = [key]
                 for val in values:
                     keys.append(val)
                 ledis.set_sinter(keys)
+                result = 'OK'
             elif excute == 'save':
                 pass
             elif excute == 'restore':
                 pass
         except:
-            return jsonify(response)
-    return response_msg('OK')
+            return response_msg('EINV')
+    if result is None:
+        return response_msg('EKTYP')
+    return response_msg(result)
 
 
 
