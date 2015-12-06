@@ -1,6 +1,7 @@
 from blist import sortedset
 import time
 import simplejson
+import json
 import os
 
 class LedisDb(object):
@@ -114,14 +115,10 @@ class LedisDb(object):
                 del self._data[key]
 
     def restore(self):
-        folder = os.environ.get('LEDIS_PATH', None)
-        dated_files = [(os.path.getmtime(fn), os.path.basename(fn))
-               for fn in os.listdir(folder) if fn.lower().endswith('.json')]
-        dated_files.sort()
-        dated_files.reverse()
-        newest = dated_files[0][1] if len(dated_files) > 0 else None
-        if newest:
-            pass
+        file_name = os.environ.get('LEDIS_PATH', None) + '/latest.json'
+        with open(file_name) as data_file:
+            self._data = json.load(data_file)
+
 
     def save(self):
         now = int(time.time())
@@ -133,8 +130,8 @@ class LedisDb(object):
             elif self.is_set(key):
                 type = 'set'
             data_types[key] = type
-        structure_file_name = os.environ.get('LEDIS_PATH', None) + '/' + str(now) + '.dson'
-        file_name = os.environ.get('LEDIS_PATH', None) + '/' + str(now) + '.json'
+        structure_file_name = os.environ.get('LEDIS_PATH', None) + '/latest.dson'
+        file_name = os.environ.get('LEDIS_PATH', None) + '/latest.json'
         simplejson.dump(self._data, open(file_name, 'wb'))
         simplejson.dump(data_types, open(structure_file_name, 'wb'))
         return True
