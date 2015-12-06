@@ -22,8 +22,11 @@ main_blueprint = Blueprint('main', __name__,)
 
 VALID_CMD = ['expire', 'ttl', 'del', 'flushdb','set','get','llen','rpush','lpop','rpop','lrange','sadd','scard','smembers','srem',
              'sinter','save','restore']
-OK_RESPONSE = {'response':'OK'}
 ECOM = {'reponse':'ECOM'}
+
+def response_msg(msg):
+    return jsonify({'response': msg})
+
 @main_blueprint.route('/ledis',methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
@@ -35,17 +38,14 @@ def home():
             commands = data['command'].split()
             excute = commands[0].lower()
             params = commands[1:]
+            key = params[0]
+            values = params[1:] if len(params) > 1 else []
+            value = params[1] if len(params) > 1 else None
             if excute == 'set':
-                key = params[0]
-                value = params[1]
                 ledis.string_set(key, value)
-                return jsonify(OK_RESPONSE)
-
             elif excute == 'get':
-                key = params[0]
-                value = ledis.string_get(key)
-                print 'value' + value
-                return jsonify({'response':value})
+                val = ledis.string_get(key)
+                return jsonify({'response': val})
             elif excute == 'expire':
                 key = params[0]
                 seconds = params[1]
@@ -89,7 +89,8 @@ def home():
                 value = params[1]
 
             elif excute == 'srem':
-                key = params
+                key = params[0]
+
 
             elif excute == 'save':
                 pass
@@ -98,9 +99,7 @@ def home():
                 pass
         except:
             return jsonify(response)
-
-    elif request.method == 'GET':
-        return jsonify(OK_RESPONSE)
+    return response_msg('OK')
 
 
 
