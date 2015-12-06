@@ -76,4 +76,18 @@ class LedisDb(object):
 
     def set_smembers(self, key):
         if self.is_exists(key) and self.is_set(key):
-            return None
+            return [item for item in self._data[key]]
+        return None
+
+    def set_srem(self, key, values):
+        if self.is_exists(key) and self.is_set(key):
+            for val in values:
+                self._data[key].discard(val)
+        return None
+
+    def set_sinter(self, keys):
+        result = sortedset()
+        for key in keys:
+            if self.is_exists(key) and self.is_list(key):
+                result.intersection(self._data[key])
+        return [item for item in result]
