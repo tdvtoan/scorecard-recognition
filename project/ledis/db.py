@@ -28,6 +28,9 @@ class LedisDb(object):
         if self.is_exists(key):
             del self._data[key]
 
+    def flush_db(self):
+        self._data.clear()
+
     def string_set(self, key, value):
         if self.is_exists(key) and not self.is_string(key):
             return None
