@@ -40,7 +40,7 @@ def home():
             if excute not in VALID_CMD:
                 return response_msg('ECOM')
             params = commands[1:]
-            key = params[0]
+            key = params[0] if len(params) > 0 else None
             values = params[1:] if len(params) > 1 else []
             value = params[1] if len(params) > 1 else None
             if excute == 'set':
@@ -61,8 +61,7 @@ def home():
             elif excute == 'llen':
                 result = ledis.list_length(key)
             elif excute == 'rpush':
-                ledis.list_rpush(key, values)
-                result = 'OK'
+                result = ledis.list_rpush(key, values)
             elif excute == 'lpop':
                 result = ledis.list_lpop(key)
             elif excute == 'rpop':
