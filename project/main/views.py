@@ -89,8 +89,7 @@ def home():
             elif excute == 'restore':
                 pass
         except:
-            return jsonify(response)
-
+            return response_msg('EINV')
     if result is None:
         return response_msg('EKTYP')
     return response_msg(result)
