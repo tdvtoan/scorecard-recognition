@@ -3,7 +3,7 @@ from blist import sortedset
 
 class LedisDb(object):
 
-    def __init__(self, storage_folder, option):
+    def __init__(self, storage_folder=None, option=None):
         self.storage_folder = storage_folder
         self.option = option
         self._data = {}
@@ -24,13 +24,17 @@ class LedisDb(object):
     def restore(self):
         pass
 
+    def del_key(self, key):
+        if self.is_exists(key):
+            del self._data[key]
+
     def string_set(self, key, value):
         if self.is_exists(key) and not self.is_string(key):
             return None
         self._data[key] = value
 
     def string_get(self, key):
-        return self._data[key] if self.is_exists(key) and self.is_string(key) is '' else None
+        return self._data[key] if self.is_exists(key) and self.is_string(key) else None
 
     def list_length(self, key):
         if self.is_exists(key) and self.is_list(key):
