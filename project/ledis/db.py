@@ -70,7 +70,7 @@ class LedisDb(object):
     def list_lrange(self, key, start, stop):
         if self.is_exists(key) and self.is_list(key):
             l = self._data[key]
-            return l[int(start):int(stop+1)]
+            return l[int(start):int(stop)+1]
 
     def set_add(self, key, values):
         if not self.is_exists(key):
