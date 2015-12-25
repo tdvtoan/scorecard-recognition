@@ -18,7 +18,6 @@ from flask.ext.cors import CORS
 ################
 #### config ####
 ################
-from project.ledis import LedisDb
 from project.ml.ml import ScoreCardReg
 
 app = Flask(__name__)

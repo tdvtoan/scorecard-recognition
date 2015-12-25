@@ -256,7 +256,7 @@ class ScoreCardReg:
         # --------------- Now take eac   h element for inspection --------------------------
         smooth = cv2.GaussianBlur(warpg, (3, 3), 3)
         thresh = cv2.adaptiveThreshold(smooth, 255, 0, 1, 11, 3)
-        cv2.imshow('Thresh', thresh)
+        #cv2.imshow('Thresh', thresh)
         # gb = cv2.bitwise_not(thresh)
         # cv2.imshow('Bitwise', gb)
         #img_cp = img.copy()
@@ -302,8 +302,8 @@ class ScoreCardReg:
         #substract_img = cv2.dilate(substract_img, kernel, iterations=1)
         substract_img = cv2.morphologyEx(substract_img, cv2.MORPH_CLOSE, kernel)
         #substract_img = cv2.GaussianBlur(substract_img, (3, 3), 3)
-        cv2.imshow('remove_line', substract_img)
-        cv2.waitKey(0)
+        # cv2.imshow('remove_line', substract_img)
+        # cv2.waitKey(0)
         return substract_img
 
     def warp_image(self, approx, img):
@@ -376,6 +376,7 @@ class ScoreCardReg:
         # ------- Remove all lines  -------
         # warp = cv2.imread('warp.png')
         par = []
+        memberId = -1
         result = {}
         # cv2.imshow('Origin', img)
 
@@ -404,7 +405,7 @@ class ScoreCardReg:
                 # cv2.imshow('Ouput', out)
                 # cv2.waitKey(0)
                 #print('area' + str(area))
-                if 100 < area < 1200:
+                if 80 < area < 1200:
                     (bx, by, bw, bh) = cv2.boundingRect(cnt)
                     try:
                         # out = np.hstack([warp[by - 10:by + bh + 10, bx - 10:bx + bw + 10]])
@@ -424,7 +425,7 @@ class ScoreCardReg:
                             # feature = small_roi.reshape((1, SZ * SZ)).astype(np.float32)
                             results = model.predict(feature)
                             #if index == 0:
-                            # cv2.drawContours(warp_copy, [cnt], 0, (0, 255, 0), 1)
+                            # cv2.drawContours(warp_copy, [cnt], 0, (255, 0, 0), 1)
                             # out = np.hstack([warp_copy])
                             # cv2.imshow('Output', out)
                             # print('knn - ' + str(results))
@@ -440,17 +441,14 @@ class ScoreCardReg:
                         print(e)
                         pass
             non_zero_row = sc[index][~np.all(sc[index] == 0, axis=1)]
-            max_sum = 0
-            max_i = 0
             map = []
             for i, r in enumerate(non_zero_row):
                 map.append({'count':np.count_nonzero(r), 'index':int(i)})
-            print map
-            for i, r in enumerate(non_zero_row):
-                r_sum = r.sum()
-                if r_sum > max_sum:
-                    max_sum = r_sum
-                    max_i = i
+            # for i, r in enumerate(non_zero_row):
+            #     r_sum = r.sum()
+            #     if r_sum > max_sum:
+            #         max_sum = r_sum
+            #         max_i = i
             sorted_map = sorted(map, key=lambda m: (m['count']), reverse=True)
 
             max_i = sorted_map[0]['index']
@@ -458,12 +456,18 @@ class ScoreCardReg:
             result.update({index: non_zero_row})
             for i in range(read_index[index][0], read_index[index][1]):
                 par.append(non_zero_row.item(max_i, i))
+            if index == 0:
+                for i in range(0, read_index[0][0]):
+                    if non_zero_row.item(max_i, i) != 0:
+                        memberId = non_zero_row.item(max_i, i)
+
             print("----------- Result ----------------")
             print(result)
-        return par
+
+        return par, memberId
 
     def process(self, img):
         pre_img = ImageClass()
         pre_img.find_2_biggest_contour(img)
-        par = self.readScoreCard(img, pre_img.biggest, self.model)
-        return par
+        par, memberId = self.readScoreCard(img, pre_img.biggest, self.model)
+        return par, memberId

@@ -2,6 +2,26 @@
 
 Golf Scorecard Recognition running by Flask.
 
+## Usage
+
++ POST /ml
+```
+{
+    'image':[scorecard_url_1, scorecard_url_2]
+}
+```
++ Response
+
+```
+{
+    'result':[
+        {'memberID':1,
+         'par':[0, 6, 5, 3, 5, 5, 5, 4, 2, 5, 5, 3, 3, 5, 4, 5, 5, 0]
+        }
+    ]
+}
+```
+
 ## Quick Start
 
 build image:
@@ -17,7 +37,7 @@ docker run --name sc -d  -p 80:5000 sc:1.0
 
 run auto-reloading container
 ```
-docker run --name sc -d -p 80:5000  -v /var/opt/ledis/project/:/usr/src/app/project sc:1.0
+docker run --name sc -d -p 80:5000  -v /var/opt/sc/project/:/usr/src/app/project sc:1.0
 ```
 
 

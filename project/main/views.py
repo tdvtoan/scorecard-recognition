@@ -17,7 +17,7 @@ import requests
 ################
 #### config ####
 ################
-from project import ledis, sc
+from project import sc
 from project.ml.ml import SCALE_IMG_WIDTH, SCALE_IMG_HEIGHT
 
 main_blueprint = Blueprint('main', __name__,)
@@ -35,30 +35,21 @@ def home():
     data = json.loads(request.data)
     urls = data['image']
     response = {'result':[]}
-    i = 0
+    #i = 0
     for url in urls:
         resp = urllib.urlopen(url)
         image = np.asarray(bytearray(resp.read()), dtype="uint8")
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)
 
-        print image.shape
-        # cv2.imshow('asd', image)
-        # cv2.waitKey(0)
         image = cv2.resize(image, (SCALE_IMG_WIDTH*2, SCALE_IMG_HEIGHT))
-        print image.shape
-        # cv2.imshow('asdss', image)
-        # cv2.waitKey(0)
-        par = sc.process(image)
+        par,memberId = sc.process(image)
         print('Par')
         print(par)
         response['result'].append({
             'par':par,
-            'memberID':i
+            'memberID':memberId
         })
-        i += 1
-    #cv2.destroyAllWindows()
-    # for i in range(0,18):
-    #     resp['par'].append(i)
+        #i += 1
     return jsonify(response)
 
 
