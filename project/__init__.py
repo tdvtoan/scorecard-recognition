@@ -13,12 +13,13 @@ from flask.ext.bcrypt import Bcrypt
 from flask.ext.debugtoolbar import DebugToolbarExtension
 from flask_bootstrap import Bootstrap
 from flask.ext.sqlalchemy import SQLAlchemy
-
+from flask.ext.cors import CORS
 
 ################
 #### config ####
 ################
 from project.ledis import LedisDb
+from project.ml.ml import ScoreCardReg
 
 app = Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
@@ -27,15 +28,14 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 ####################
 #### extensions ####
 ####################
-
+CORS(app, resources={r"/ml/*": {"origins": "*"}})
 login_manager = LoginManager()
 login_manager.init_app(app)
 bcrypt = Bcrypt(app)
 toolbar = DebugToolbarExtension(app)
 bootstrap = Bootstrap(app)
 db = SQLAlchemy(app)
-ledis = LedisDb()
-
+sc = ScoreCardReg()
 ###################
 ### blueprints ####
 ###################

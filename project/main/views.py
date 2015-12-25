@@ -4,14 +4,21 @@
 #################
 #### imports ####
 #################
+import urllib
 
+import cv2
+import flask
+import numpy as np
 from flask import render_template, Blueprint
 from flask import Blueprint, jsonify, request
 import json
+import requests
+
 ################
 #### config ####
 ################
-from project import ledis
+from project import ledis, sc
+from project.ml.ml import SCALE_IMG_WIDTH, SCALE_IMG_HEIGHT
 
 main_blueprint = Blueprint('main', __name__,)
 
@@ -20,82 +27,39 @@ main_blueprint = Blueprint('main', __name__,)
 #### routes ####
 ################
 
-VALID_CMD = ['expire', 'ttl', 'del', 'flushdb','set','get','llen','rpush','lpop','rpop','lrange','sadd','scard','smembers','srem',
-             'sinter','save','restore']
-ECOM = {'reponse':'ECOM'}
 
-def response_msg(msg):
-    return jsonify({'response': msg})
 
-@main_blueprint.route('/ledis',methods=['GET', 'POST'])
+
+@main_blueprint.route('/ml',methods=['POST'])
 def home():
-    if request.method == 'POST':
-        response = {'response':'OK'}
-        try:
-            data = json.loads(request.data)
-            if 'command' not in data:
-                return jsonify(ECOM)
-            commands = data['command'].split()
-            excute = commands[0].lower()
-            if excute not in VALID_CMD:
-                return response_msg('ECOM')
-            params = commands[1:]
-            key = params[0] if len(params) > 0 else None
-            values = params[1:] if len(params) > 1 else []
-            value = params[1] if len(params) > 1 else None
-            if excute == 'set':
-                ledis.string_set(key, value)
-                result = 'OK'
-            elif excute == 'get':
-                result = ledis.string_get(key)
-            elif excute == 'expire':
-                pass
-            elif excute == 'ttl':
-                pass
-            elif excute == 'del':
-                ledis.del_key(key)
-                result = 'OK'
-            elif excute == 'flushdb':
-                ledis.flush_db()
-                result = 'OK'
-            elif excute == 'llen':
-                result = ledis.list_length(key)
-            elif excute == 'rpush':
-                result = ledis.list_rpush(key, values)
-            elif excute == 'lpop':
-                result = ledis.list_lpop(key)
-            elif excute == 'rpop':
-                result = ledis.list_rpop(key)
-            elif excute == 'lrange':
-                result = ledis.list_lrange(key, values[0], values[1])
-            elif excute == 'sadd':
-                ledis.set_add(key, values)
-                result = 'OK'
-            elif excute == 'scard':
-                result = ledis.set_scard(key)
-            elif excute == 'smembers':
-                result = ledis.set_smembers(key)
-            elif excute == 'srem':
-                ledis.set_srem(key, values)
-                result = 'OK'
-            elif excute == 'sinter':
-                keys = [key]
-                for val in values:
-                    keys.append(val)
-                ledis.set_sinter(keys)
-                result = 'OK'
-            elif excute == 'save':
-                ledis.save()
-                result = 'OK'
-            elif excute == 'restore':
-                ledis.restore()
-                result = 'OK'
-        except:
-            return response_msg('EINV')
-    if result is None:
-        return response_msg('EKTYP')
-    return response_msg(result)
+    data = json.loads(request.data)
+    urls = data['image']
+    response = {'result':[]}
+    i = 0
+    for url in urls:
+        resp = urllib.urlopen(url)
+        image = np.asarray(bytearray(resp.read()), dtype="uint8")
+        image = cv2.imdecode(image, cv2.IMREAD_COLOR)
 
+        print image.shape
+        # cv2.imshow('asd', image)
+        # cv2.waitKey(0)
+        image = cv2.resize(image, (SCALE_IMG_WIDTH*2, SCALE_IMG_HEIGHT))
+        print image.shape
+        # cv2.imshow('asdss', image)
+        # cv2.waitKey(0)
+        par = sc.process(image)
+        print('Par')
+        print(par)
+        response['result'].append({
+            'par':par,
+            'memberID':i
+        })
+        i += 1
+    #cv2.destroyAllWindows()
+    # for i in range(0,18):
+    #     resp['par'].append(i)
+    return jsonify(response)
 
 
 @main_blueprint.route("/about/")
