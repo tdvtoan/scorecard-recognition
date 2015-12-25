@@ -1,6 +1,6 @@
 # Overview
 
-Golf Scorecard Recognition serivce running by Flask.
+Golf Scorecard Recognition running by Flask.
 
 ## Quick Start
 
@@ -12,18 +12,18 @@ cd /var/opt/ledis
 
 build image:
 ```bash
-docker build -t ledis:1.0 .
+docker build -t sc:1.0 .
 ```
 
 run container
 ```bash
-docker run --name ledis -d -e "LEDIS_PATH=/var/data/ledis" -v /var/data/ledis:/var/data/ledis -p 80:5000 ledis:1.0
+docker run --name sc -d  -p 80:5000 sc:1.0
 ```
 
 
 run auto-reloading container
 ```
-docker run --name ledis -d -p 80:5000 -e "LEDIS_PATH=/var/data/ledis" -v /var/data/ledis:/var/data/ledis -v /var/opt/ledis/project/:/usr/src/app/project ledis:1.0
+docker run --name sc -d -p 80:5000  -v /var/opt/ledis/project/:/usr/src/app/project sc:1.0
 ```
 
 
