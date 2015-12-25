@@ -1,15 +1,6 @@
-# Grokking Challenge Finale
+# Overview
 
-In this challenge, we will attempt to build an in-memory datastore. To make things
-simple, let's follow the popular in-memory database Redis and try to build a
-stripped down version of it.
-
-Your job is to build a **Ledis** (Lite Redis) datastore that supports these
-data structures: **string**, **list**, **set**.
-
-The use of ready-made databases or libraries that handle the main gist of the challenge (Redis, Riak, RocksDB, LevelDB, PostgreSQL, MySQL etc) are not allowed.
-
-However, the use of any other libraries/framework that help with the individual components of your implementation is allowed.
+Golf Scorecard Recognition serivce running by Flask.
 
 ## Quick Start
 
@@ -38,6 +29,11 @@ docker run --name ledis -d -p 80:5000 -e "LEDIS_PATH=/var/data/ledis" -v /var/da
 
 ## Flask particulars
 
+### Basics
+
+1. Install the requirements
+2. Install opencv 3.0
+
 ### Set Environment Variables
 
 Update *config.py*, and then run:
@@ -50,16 +46,6 @@ or
 
 ```sh
 $ export APP_SETTINGS="project.config.ProductionConfig"
-```
-
-### Create DB
-
-```sh
-$ python manage.py create_db
-$ python manage.py db init
-$ python manage.py db migrate
-$ python manage.py create_admin
-$ python manage.py create_data
 ```
 
 ### Run the Application
