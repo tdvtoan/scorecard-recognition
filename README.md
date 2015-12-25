@@ -4,12 +4,6 @@ Golf Scorecard Recognition running by Flask.
 
 ## Quick Start
 
-```bash
-cd /var/opt
-git clone https://github.com/khanhicetea/flask-skeleton.git ledis
-cd /var/opt/ledis
-```
-
 build image:
 ```bash
 docker build -t sc:1.0 .
