@@ -253,9 +253,89 @@ class ScoreCardReg:
 
     def remove_line(self, img):
         warpg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # kept a gray-scale copy of warp for further use
+
+        mask = np.zeros((warpg.shape),np.uint8)
+        kernel1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(11,11))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        close = cv2.morphologyEx(warpg,cv2.MORPH_CLOSE,kernel1)
+        div = np.float32(warpg)/(close)
+        warpg = np.uint8(cv2.normalize(div,div,0,255,cv2.NORM_MINMAX))
+        #warpg = cv2.cvtColor(res,cv2.COLOR_GRAY2BGR)
+
         # --------------- Now take eac   h element for inspection --------------------------
-        smooth = cv2.GaussianBlur(warpg, (3, 3), 3)
-        thresh = cv2.adaptiveThreshold(smooth, 255, 0, 1, 11, 3)
+        smooth = cv2.GaussianBlur(warpg, (3,3), 3)
+        thresh = cv2.adaptiveThreshold(smooth.copy(), 255, 0, 1, 11, 3)
+
+        #kernelx = cv2.getStructuringElement(cv2.MORPH_RECT,(2,10))
+        #
+
+        # ret,close = cv2.threshold(dx,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        close = cv2.adaptiveThreshold(smooth.copy(), 0, 0, 1, 11, 3)
+        black_img = close.copy()
+        edges = cv2.Canny(warpg,100,150,apertureSize = 3)
+        #edges = cv2.dilate(edges, kernel, iterations=1)
+        # dx = cv2.Sobel(edges,cv2.CV_16S,1,0)
+        # dx = cv2.convertScaleAbs(dx)
+        #
+        # cv2.normalize(dx,dx,0,255,cv2.NORM_MINMAX)
+        edges = cv2.morphologyEx(edges,cv2.MORPH_CLOSE,kernel,iterations = 1)
+        cv2.imshow('edge', edges)
+        cv2.waitKey(0)
+
+        # dy = cv2.Sobel(edges,cv2.CV_16S,0,1)
+        # dy = cv2.convertScaleAbs(dy)
+        # cv2.normalize(dy,dy,0,255,cv2.NORM_MINMAX)
+        # cv2.imshow('edge', dy)
+        # cv2.waitKey(0)
+
+        minLineLength = 80
+        maxLineGap = 10
+
+        lines = cv2.HoughLinesP(edges,1,np.pi/180,80,minLineLength=minLineLength,maxLineGap=maxLineGap)
+
+        for l in lines:
+            for x1,y1,x2,y2 in l:
+                cv2.line(close, (x1,y1), (x2,y2), (255,255,255), 1, 8)
+        close = cv2.morphologyEx(close,cv2.MORPH_CLOSE,kernel,iterations=2)
+        close = cv2.morphologyEx(close,cv2.MORPH_DILATE,kernel,iterations=1)
+        cv2.imshow('hough', close)
+        cv2.waitKey(0)
+
+        #close = cv2.morphologyEx(close,cv2.MORPH_DILATE,kernelx,iterations = 1)
+
+        # img2, contour, hier = cv2.findContours(close,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        # for cnt in contour:
+        #     x,y,w,h = cv2.boundingRect(cnt)
+        #     if h/w > 5:
+        #         cv2.drawContours(close,[cnt],0,255,-1)
+        #     else:
+        #         cv2.drawContours(close,[cnt],0,0,-1)
+        #
+        # close = cv2.morphologyEx(close,cv2.MORPH_CLOSE,None,iterations=1)
+        # ver_img = close.copy()
+        #
+        # kernely = cv2.getStructuringElement(cv2.MORPH_RECT,(10,2))
+        # dy = cv2.Sobel(smooth,cv2.CV_16S,0,1)
+        # dy = cv2.convertScaleAbs(dy)
+        # cv2.normalize(dy,dy,0,255,cv2.NORM_MINMAX)
+        #
+        # ret,close = cv2.threshold(dy,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        # cv2.imshow('thresh', close)
+        # cv2.waitKey(0)
+        # #close = cv2.morphologyEx(close,cv2.MORPH_DILATE,kernely)
+        #
+        # img2, contour, hier = cv2.findContours(close,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        # for cnt in contour:
+        #     x,y,w,h = cv2.boundingRect(cnt)
+        #     if w/h > 5:
+        #         cv2.drawContours(close,[cnt],0, (255, 0, 0), 1)
+        #     else:
+        #         cv2.drawContours(close,[cnt],0,0,-1)
+        #
+        # close = cv2.morphologyEx(close,cv2.MORPH_DILATE,None,iterations = 1)
+        # hor_img = close.copy()
+
+
         #cv2.imshow('Thresh', thresh)
         # gb = cv2.bitwise_not(thresh)
         # cv2.imshow('Bitwise', gb)
@@ -273,37 +353,75 @@ class ScoreCardReg:
         #     cv2.line(img_cp,(x1,y1),(x2,y2),(0,255,0),2)
         #
         # cv2.imshow('houghlines',img_cp)
-        height, width, channels = img.shape
 
-        # Specify size on horizontal axis
-        horizontalsize = int(height / 5)
-        verticalsize = int(width / 20)
-        # thresh = edges
-        # Create structure element for extracting horizontal lines through morphology operation
+        # ---- Remove lines ----
+        # height, width, channels = img.shape
+        #
+        # # Specify size on horizontal axis
+        # horizontalsize = int(height / 5)
+        # verticalsize = int(width / 20)
+        #
+        # # Create structure element for extracting horizontal lines through morphology operation
+        # hor_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (horizontalsize, 1))
+        # ver_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, verticalsize))
+        # kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
+        #
+        # # Apply morphology operations
+        # ver_opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, ver_kernel, iterations=1)
+        # hor_opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, hor_kernel, iterations=1)
+        #
+        # # Eliminate vertical and horizontal lines
+        substract_img = edges - close
+        #
+        # substract_img = cv2.morphologyEx(substract_img, cv2.MORPH_OPEN, kernel)
+        # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 1))
+        # #substract_img = cv2.dilate(substract_img, kernel, iterations=1)
+        #substract_img = cv2.morphologyEx(substract_img, cv2.MORPH_CLOSE, kernel)
 
-        hor_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (horizontalsize, 1))
-        ver_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, verticalsize))
-        kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
-
-        # Apply morphology operations
-        ver_opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, ver_kernel, iterations=1)
-        hor_opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, hor_kernel, iterations=1)
-        # cv2.imshow('ver', ver_opening)
-        # cv2.imshow('hor', hor_opening)
-        # cv2.imshow('thresh', thresh)
-        # Eliminate vertical and horizontal lines
-        substract_img = thresh - ver_opening - hor_opening
-
-        #  substract_img = cv2.morphologyEx(substract_img, cv2.MORPH_OPEN, kernel, iterations=1)
-
-
-        substract_img = cv2.morphologyEx(substract_img, cv2.MORPH_OPEN, kernel)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 1))
-        #substract_img = cv2.dilate(substract_img, kernel, iterations=1)
-        substract_img = cv2.morphologyEx(substract_img, cv2.MORPH_CLOSE, kernel)
-        #substract_img = cv2.GaussianBlur(substract_img, (3, 3), 3)
-        # cv2.imshow('remove_line', substract_img)
+        # cv2.imshow('ver', ver_img)
         # cv2.waitKey(0)
+        # cv2.imshow('hor', hor_img)
+        # cv2.waitKey(0)
+
+
+
+        ver_black = black_img.copy()
+        img2, contour, hier = cv2.findContours(substract_img.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        for cnt in contour:
+            x,y,w,h = cv2.boundingRect(cnt)
+            if h/w > 10:
+                cv2.drawContours(ver_black,[cnt],0,(255, 255, 255), 1)
+            else:
+                cv2.drawContours(ver_black,[cnt],0,(0, 0, 0), 1)
+
+
+        ver_black = cv2.morphologyEx(ver_black,cv2.MORPH_DILATE,kernel,iterations = 1)
+        ver_img = ver_black.copy()
+
+        hor_black = black_img.copy()
+        img2, contour, hier = cv2.findContours(substract_img.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        for cnt in contour:
+            x,y,w,h = cv2.boundingRect(cnt)
+            if w/h > 10:
+                cv2.drawContours(hor_black,[cnt],0,(255, 255, 255), 1)
+            else:
+                cv2.drawContours(hor_black,[cnt],0,(0, 0, 0), 1)
+
+        hor_black = cv2.morphologyEx(hor_black,cv2.MORPH_DILATE,kernel,iterations=1)
+        hor_img = hor_black.copy()
+
+        substract_img = substract_img - ver_img - hor_img
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        #substract_img = cv2.Canny(substract_img,100,150,apertureSize=3)
+        substract_img = cv2.morphologyEx(substract_img,cv2.MORPH_CLOSE,kernel,iterations=1)
+        # h, w = substract_img.shape[:2]
+        # mask = np.zeros((h+2, w+2), np.uint8)
+        # cv2.floodFill(substract_img, mask, (0,0), 255)
+        ret, substract_img = cv2.threshold(substract_img, 127, 255, cv2.THRESH_BINARY)
+
+        cv2.imshow('remove_line', substract_img)
+        cv2.waitKey(0)
         return substract_img
 
     def warp_image(self, approx, img):
@@ -389,15 +507,14 @@ class ScoreCardReg:
 
             # cv2.waitKey(0)
             mor_img_copy = non_line_img.copy()
-
             # find contours
-            img2, contours, hierarchy = cv2.findContours(mor_img_copy, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            img2, contours, hierarchy = cv2.findContours(mor_img_copy, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
             warp_copy = warp.copy()
             diffWhite = 0
-            # cv2.drawContours(warp_copy, contours, -1, (0, 255, 0), 1)
-            # out = np.hstack([warp_copy])
-            # cv2.imshow('All Contours', out)
+            cv2.drawContours(warp_copy, contours, -1, (255, 255, 0), 1)
+            out = np.hstack([warp_copy])
+            cv2.imshow('All Contours', out)
             for cnt in contours:
                 area = cv2.contourArea(cnt)
                 # cv2.drawContours(warp_copy, [cnt], 0, (255, 255, 0), 1)
@@ -425,10 +542,11 @@ class ScoreCardReg:
                             # feature = small_roi.reshape((1, SZ * SZ)).astype(np.float32)
                             results = model.predict(feature)
                             #if index == 0:
-                            # cv2.drawContours(warp_copy, [cnt], 0, (255, 0, 0), 1)
-                            # out = np.hstack([warp_copy])
-                            # cv2.imshow('Output', out)
-                            # print('knn - ' + str(results))
+                            cv2.drawContours(warp_copy, [cnt], 0, (255, 0, 0), 1)
+                            out = np.hstack([warp_copy])
+                            cv2.imshow('Output', out)
+                            print('knn - ' + str(results))
+                            cv2.waitKey(0)
                             gridy, gridx = (bx + bw / 2) / 50, (
                                 by + bh / 2) / 50  # gridx and gridy are indices of row and column in sudo
                             integer = int(results.ravel()[0])
@@ -444,15 +562,10 @@ class ScoreCardReg:
             map = []
             for i, r in enumerate(non_zero_row):
                 map.append({'count':np.count_nonzero(r), 'index':int(i)})
-            # for i, r in enumerate(non_zero_row):
-            #     r_sum = r.sum()
-            #     if r_sum > max_sum:
-            #         max_sum = r_sum
-            #         max_i = i
+
             sorted_map = sorted(map, key=lambda m: (m['count']), reverse=True)
 
             max_i = sorted_map[0]['index']
-            #sorted_map = sorted(map.items(), key=operator.itemgetter(1))
             result.update({index: non_zero_row})
             for i in range(read_index[index][0], read_index[index][1]):
                 par.append(non_zero_row.item(max_i, i))
