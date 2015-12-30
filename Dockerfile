@@ -36,12 +36,13 @@ RUN	cd /usr/local/src/opencv \
 	&& ldconfig \
 	&& rm -rf /usr/local/src/opencv
 
-RUN mkdir -p /usr/src/app
+RUN mkdir -p /usr/src/app/{project, train_data}
 WORKDIR /usr/src/app
-
-# COPY requirements.txt /usr/src/app/
-# RUN pip install --no-cache-dir -r requirements.txt
 ENV APP_SETTINGS=project.config.DevelopmentConfig
-COPY src/ manage.py /usr/src/app/
+
+# Add src
+COPY train_data /usr/src/app/train_data
+COPY manage.py /usr/src/app
+COPY project/ /usr/src/app/project
 
 CMD ["python","./manage.py", "runserver","-h","0.0.0.0","-p","5000"]
