@@ -10,3 +10,4 @@ __pycahe__
 .DS_Store
 env.sh
 migrations
+/vendor/
