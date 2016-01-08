@@ -12,7 +12,6 @@ import numpy as np
 from flask import render_template, Blueprint
 from flask import Blueprint, jsonify, request
 import json
-import requests
 
 ################
 #### config ####
@@ -41,7 +40,7 @@ def home():
         image = np.asarray(bytearray(resp.read()), dtype="uint8")
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)
 
-        image = cv2.resize(image, (SCALE_IMG_WIDTH*2, SCALE_IMG_HEIGHT))
+        image = cv2.resize(image, (650*2, SCALE_IMG_HEIGHT))
         par,memberId = sc.process(image)
         print('Par')
         print(par)

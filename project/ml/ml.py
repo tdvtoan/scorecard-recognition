@@ -4,9 +4,10 @@ import cv2
 import numpy as np
 from numpy.linalg import norm
 
-SCALE_IMG_WIDTH = 650
+SCALE_IMG_WIDTH = [700,650]
 
 SCALE_IMG_HEIGHT = 450
+
 bin_n = 16  # Number of bins
 DIGITS_FN = 'train_data/digits.png'
 SZ = 20  # size of each digit is SZ x SZ
@@ -279,8 +280,8 @@ class ScoreCardReg:
         #
         # cv2.normalize(dx,dx,0,255,cv2.NORM_MINMAX)
         edges = cv2.morphologyEx(edges,cv2.MORPH_CLOSE,kernel,iterations = 1)
-        cv2.imshow('edge', edges)
-        cv2.waitKey(0)
+        # cv2.imshow('edge', edges)
+        # cv2.waitKey(0)
 
         # dy = cv2.Sobel(edges,cv2.CV_16S,0,1)
         # dy = cv2.convertScaleAbs(dy)
@@ -298,8 +299,8 @@ class ScoreCardReg:
                 cv2.line(close, (x1,y1), (x2,y2), (255,255,255), 1, 8)
         close = cv2.morphologyEx(close,cv2.MORPH_CLOSE,kernel,iterations=2)
         close = cv2.morphologyEx(close,cv2.MORPH_DILATE,kernel,iterations=1)
-        cv2.imshow('hough', close)
-        cv2.waitKey(0)
+        # cv2.imshow('hough', close)
+        # cv2.waitKey(0)
 
         #close = cv2.morphologyEx(close,cv2.MORPH_DILATE,kernelx,iterations = 1)
 
@@ -419,21 +420,19 @@ class ScoreCardReg:
         # mask = np.zeros((h+2, w+2), np.uint8)
         # cv2.floodFill(substract_img, mask, (0,0), 255)
         ret, substract_img = cv2.threshold(substract_img, 127, 255, cv2.THRESH_BINARY)
-
-        cv2.imshow('remove_line', substract_img)
-        cv2.waitKey(0)
+        
         return substract_img
 
-    def warp_image(self, approx, img):
+    def warp_image(self, approx, img, index):
         h = np.array(
-            [[0, 0], [SCALE_IMG_WIDTH - 1, 0], [SCALE_IMG_WIDTH - 1, SCALE_IMG_HEIGHT - 1], [0, SCALE_IMG_HEIGHT - 1]],
+            [[0, 0], [SCALE_IMG_WIDTH[index] - 1, 0], [SCALE_IMG_WIDTH[index] - 1, SCALE_IMG_HEIGHT - 1], [0, SCALE_IMG_HEIGHT - 1]],
             np.float32)  # this is corners of new square image taken in CW order
 
         approx = self.rectify(approx)  # we put the corners of biggest square in CW order to match with h
 
         retval = cv2.getPerspectiveTransform(approx, h)  # apply perspective transformation
         warp = cv2.warpPerspective(img, retval,
-                                   (SCALE_IMG_WIDTH, SCALE_IMG_HEIGHT))  # Now we get perfect square with size 450x450
+                                   (SCALE_IMG_WIDTH[index], SCALE_IMG_HEIGHT))  # Now we get perfect square with size 450x450
         return warp
 
     # ---------------- Function to put vertices in clockwise order ----------
@@ -488,8 +487,8 @@ class ScoreCardReg:
             return False
 
     def readScoreCard(self, img, biggest, model):
-        sc = [np.zeros((9, 13), np.uint8), np.zeros((9, 15), np.uint8)]
-        read_index = [(3, 12), (0, 9)]
+        sc = [np.zeros((9, 14), np.uint8), np.zeros((9, 15), np.uint8)]
+        read_index = [(4, 13), (0, 9)]
         kernel = np.matrix('0,1,0;1,1,1;0,1,0', np.uint8)
         # ------- Remove all lines  -------
         # warp = cv2.imread('warp.png')
@@ -500,21 +499,21 @@ class ScoreCardReg:
 
         for index, approx in enumerate(biggest):
             print("Solving index - " + str(index))
-            warp = self.warp_image(approx, img)
+            warp = self.warp_image(approx, img,index)
             # cv2.imshow('Warp-' + str(index), warp)
             non_line_img = self.remove_line(warp)
-            # cv2.imshow('Remove-Line-' + str(index), non_line_img)
+            cv2.imshow('Remove-Line-' + str(index), non_line_img)
 
-            # cv2.waitKey(0)
+            cv2.waitKey(0)
             mor_img_copy = non_line_img.copy()
             # find contours
             img2, contours, hierarchy = cv2.findContours(mor_img_copy, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
             warp_copy = warp.copy()
             diffWhite = 0
-            cv2.drawContours(warp_copy, contours, -1, (255, 255, 0), 1)
-            out = np.hstack([warp_copy])
-            cv2.imshow('All Contours', out)
+            # cv2.drawContours(warp_copy, contours, -1, (255, 255, 0), 1)
+            # out = np.hstack([warp_copy])
+            # cv2.imshow('All Contours', out)
             for cnt in contours:
                 area = cv2.contourArea(cnt)
                 # cv2.drawContours(warp_copy, [cnt], 0, (255, 255, 0), 1)
@@ -530,6 +529,7 @@ class ScoreCardReg:
                         # cv2.waitKey(0)
                         if self.isMostWhiteBg(warp[by - 10:by + bh + 10, bx - 10:bx + bw + 10]):
                             roi = non_line_img[by:by + bh, bx:bx + bw].astype(np.uint8)
+                            cv2.imshow('ROi', roi)
                             # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
                             roi = cv2.erode(roi, kernel, iterations=1)
 
@@ -546,11 +546,16 @@ class ScoreCardReg:
                             out = np.hstack([warp_copy])
                             cv2.imshow('Output', out)
                             print('knn - ' + str(results))
-                            cv2.waitKey(0)
+
+
                             gridy, gridx = (bx + bw / 2) / 50, (
                                 by + bh / 2) / 50  # gridx and gridy are indices of row and column in sudo
+                            print  gridx,gridy
+
                             integer = int(results.ravel()[0])
                             sc[index].itemset((gridx, gridy), integer)
+                            print sc[index]
+                            cv2.waitKey(0)
                         else:
                             diffWhite += 1
                             if diffWhite == 5:
