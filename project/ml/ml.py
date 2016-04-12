@@ -17,7 +17,6 @@ is_capture = True
 par = []
 table = None
 
-
 class StatModel(object):
     def load(self, fn):
         self.model.load(fn)
@@ -266,7 +265,8 @@ class ScoreCardReg:
         # --------------- Now take eac   h element for inspection --------------------------
         smooth = cv2.GaussianBlur(warpg, (3,3), 3)
         thresh = cv2.adaptiveThreshold(smooth.copy(), 255, 0, 1, 11, 3)
-
+        cv2.imshow('edge', thresh)
+        cv2.waitKey(0)
         #kernelx = cv2.getStructuringElement(cv2.MORPH_RECT,(2,10))
         #
 
@@ -496,10 +496,13 @@ class ScoreCardReg:
         memberId = -1
         result = {}
         # cv2.imshow('Origin', img)
-
+        store_memberID = []
         for index, approx in enumerate(biggest):
             print("Solving index - " + str(index))
             warp = self.warp_image(approx, img,index)
+            warpg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            smooth = cv2.GaussianBlur(warpg, (3,3), 3)
+            thresh = cv2.adaptiveThreshold(smooth.copy(), 255, 0, 1, 11, 3)
             # cv2.imshow('Warp-' + str(index), warp)
             non_line_img = self.remove_line(warp)
             cv2.imshow('Remove-Line-' + str(index), non_line_img)
@@ -550,9 +553,21 @@ class ScoreCardReg:
 
                             gridy, gridx = (bx + bw / 2) / 50, (
                                 by + bh / 2) / 50  # gridx and gridy are indices of row and column in sudo
-                            print  gridx,gridy
+                            print gridx,gridy
 
                             integer = int(results.ravel()[0])
+                            if index == 0 and gridy < 4:
+                                valid = True
+                                for item in store_memberID:
+                                    if abs(item['x'] - bx) <= 10 and item['gridx'] == gridx:
+                                        valid = False
+                                        break
+                                if valid:
+                                    store_memberID.append({
+                                        'number':integer,
+                                        'x':bx,
+                                        'gridx':gridx
+                                    })
                             sc[index].itemset((gridx, gridy), integer)
                             print sc[index]
                             cv2.waitKey(0)
@@ -563,7 +578,9 @@ class ScoreCardReg:
                     except Exception as e:
                         print(e)
                         pass
-            non_zero_row = sc[index][~np.all(sc[index] == 0, axis=1)]
+            #non_zero_row = sc[index][~np.all(sc[index] == 0, axis=1)]
+            non_zero_row = sc[index]
+
             map = []
             for i, r in enumerate(non_zero_row):
                 map.append({'count':np.count_nonzero(r), 'index':int(i)})
@@ -575,9 +592,16 @@ class ScoreCardReg:
             for i in range(read_index[index][0], read_index[index][1]):
                 par.append(non_zero_row.item(max_i, i))
             if index == 0:
-                for i in range(0, read_index[0][0]):
-                    if non_zero_row.item(max_i, i) != 0:
-                        memberId = non_zero_row.item(max_i, i)
+                print store_memberID
+                par_row = [x for x in store_memberID if x['gridx'] == max_i]
+                par_row = sorted(par_row, key=lambda m: (m['x']),reverse=True)
+                memberId = 0
+                for i, item in enumerate(par_row):
+                    memberId += item['number']*10**i
+                print memberId
+                # for i in range(0, read_index[0][0]):
+                #     if non_zero_row.item(max_i, i) != 0:
+                #         memberId = non_zero_row.item(max_i, i)
 
             print("----------- Result ----------------")
             print(result)
